@@ -31,27 +31,13 @@ import static java.lang.String.valueOf;
 
 public class ModifieParametres extends AppCompatActivity implements View.OnClickListener {
 
-    // Procéder à la modification des parametres
-
-    // Declaration des variables
-
-
     private String Nom_aidant, Numero_aidant;
-
     private int Periode;
-    // 120 secondes pour MAP - valeur par défaut
-
-    // public static final String NomFichier  dans MainActivity
-    //private File mFile = null;
 
     // tampon pour la sauvegarde / lecture des parametres
     private String SvgParametres = null;
 
-
-
-    // Declaration des elements affiches
-
-    //private TextView NomRubrique, MobileRubrique, PeriodeRubrique, PeriodeValeur;
+    // Declaration des elements affiches utilises
     private EditText MobileValeur, NomValeur ;
 
 
@@ -62,37 +48,17 @@ public class ModifieParametres extends AppCompatActivity implements View.OnClick
 
         setContentView(R.layout.activity_modifie_parametres);
 
-        // MAJ et Afficher écran d'accueil
+        // Cabler les rubriques utilisées
 
-        // Cabler les rubriques
-
-        //TextView Titre = findViewById(R.id.Titre);
-        //TextView Texte = findViewById(R.id.Texte);
-        // NomRubrique = findViewById(R.id.NomRubrique);
         NomValeur =  findViewById(R.id.NomValeur);
-        // MobileRubrique =  findViewById(R.id.MobileRubrique);
         MobileValeur = findViewById(R.id.MobileValeur);
-        //PeriodeRubrique = findViewById(R.id.PeriodeRubrique);
         TextView PeriodeValeur = findViewById(R.id.PeriodeValeur);
         Button g_bouton = findViewById(R.id.g_bouton);
         Button d_bouton = findViewById(R.id.d_bouton);
 
-        // tampons de travail
-        Toast msgT;
-        String tmp;
-
-
-        // Ajout modification Periode
-
         RadioGroup radiogroup;
-        //RadioButton radio1, radio2, radio3 = new RadioButton(this);
 
         radiogroup = findViewById(R.id.radiogroup);
-        //radio1 = findViewById(R.id.radio1);
-        //radio2 = findViewById(R.id.radio2);
-        //radio3 = findViewById(R.id.radio3);
-
-        // relire le fichier via un buffer ... si le fichier existe
 
         // relire le fichier
 
@@ -109,12 +75,6 @@ public class ModifieParametres extends AppCompatActivity implements View.OnClick
             }
 
 
-            // if (input != null ) {
-
-            //   tmp = "buffer : " + lu.toString();
-            //   msgT = Toast.makeText(this, tmp, Toast.LENGTH_LONG);
-            //   msgT.show();
-
             // Decomposition du buffer
             SvgParametres = lu.toString();
 
@@ -126,14 +86,10 @@ public class ModifieParametres extends AppCompatActivity implements View.OnClick
                 Nom_aidant = separated[0];
                 Numero_aidant = separated[1];
                 Periode = Integer.parseInt(separated[2]);
-                //tmp = "retour lu fichier numero" + Numero_aidant;
-                //msgT = Toast.makeText(this,tmp, Toast.LENGTH_SHORT);
-                //msgT.show();
+
             } else {
                 // le fichier existe mais pb sur le fichier
-                tmp = "pb sur le buffer";
-                msgT = Toast.makeText(this, tmp, Toast.LENGTH_LONG);
-                msgT.show();
+                Toast.makeText(this, "Pb sur le buffer", Toast.LENGTH_LONG).show();
 
                 Nom_aidant=DEFAUT_NOM_AIDANT;
                 Numero_aidant = DEFAUT_NUMERO_AIDANT;
@@ -147,8 +103,7 @@ public class ModifieParametres extends AppCompatActivity implements View.OnClick
 
 
         catch (FileNotFoundException e) {
-            msgT = Toast.makeText(this,"File Not Found", Toast.LENGTH_SHORT);
-            msgT.show();
+            Toast.makeText(this, "File Not Found", Toast.LENGTH_SHORT).show();
 
             // MAP si ni Bundle ni fichier, on arrive chez moi
             Nom_aidant=DEFAUT_NOM_AIDANT;
@@ -202,14 +157,12 @@ public class ModifieParametres extends AppCompatActivity implements View.OnClick
 
         // user just clicked
 
-        // declaration de variable
-        Intent ActiviteSuivante;
+        Intent ActiviteSuivante;            // declaration de variable
+
         // Recuperation de l evenement - Tag fixe plus haut - gauche : 0 - droite : 1
         int valeurbouton = (int) view.getTag();
         switch (valeurbouton) {
             case 0:
-                // MAP
-                // String msg = "Bouton gauche";
 
                 try {
                     FileInputStream input = openFileInput(NomFichier);
@@ -218,9 +171,7 @@ public class ModifieParametres extends AppCompatActivity implements View.OnClick
                     while ((value =input.read()) != -1) {
                         lu.append((char)value);
                     }
-                    //  Toast msgT = Toast.makeText(this,"lu fichier" + lu.toString(), Toast.LENGTH_SHORT);
-                    //  msgT.show();
-                    //if (input != null )
+
                     input.close();
                 }
 
@@ -231,9 +182,7 @@ public class ModifieParametres extends AppCompatActivity implements View.OnClick
                     e.printStackTrace();
                 }
 
-                // Revenir à l'accueil => passe par le bundle
-                //ActiviteSuivante = new Intent(ModifieParametres.this, MainActivity.class);
-                //startActivity(ActiviteSuivante);
+                // Revenir à l'accueil
                 finish();
                 break;
 
@@ -257,12 +206,11 @@ public class ModifieParametres extends AppCompatActivity implements View.OnClick
 
                         //if (output != null)
                         output.close();
-                        //Toast msgT = Toast.makeText(this, "ecriture fichier", Toast.LENGTH_SHORT);
-                        //msgT.show();
+
                         // On retourne à l'accueil par un intent et non finish) pour bénéficier de la MAJ si nécessaire
                         ActiviteSuivante = new Intent(ModifieParametres.this, MainActivity.class);
                         startActivity(ActiviteSuivante);
-                        //finish();
+
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     } catch (IOException e) {
@@ -271,8 +219,7 @@ public class ModifieParametres extends AppCompatActivity implements View.OnClick
                 }
                 else
                 {
-                    Toast msgT = Toast.makeText(this, "le numero saisi ne comporte pas 10 chiffres", Toast.LENGTH_LONG);
-                    msgT.show();
+                   Toast.makeText(this, "le numero saisi ne comporte pas 10 chiffres", Toast.LENGTH_LONG).show();
                 }
 
                 break;
@@ -304,10 +251,6 @@ public class ModifieParametres extends AppCompatActivity implements View.OnClick
 
         super.onSaveInstanceState(outState);
         outState.putString(BUNDLE_NOM_AIDANT, Nom_aidant );
-
-        //Toast msgT = Toast.makeText(this, "Bundle "+ Nom_aidant, Toast.LENGTH_SHORT);
-        //msgT.show();
-
         outState.putString(BUNDLE_NUMERO_AIDANT, Numero_aidant);
         outState.putString(BUNDLE_PERIODE, valueOf(Periode));
     }
@@ -333,7 +276,6 @@ public class ModifieParametres extends AppCompatActivity implements View.OnClick
         } catch (NumberFormatException e){
             return false;
         }
-
         return true;
     }
 
