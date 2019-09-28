@@ -8,16 +8,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
-import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -50,18 +45,13 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
         GoogleApiClient.OnConnectionFailedListener,View.OnClickListener{
 
     // Declaration des elements affiches
-    private TextView Titre, Texte, NomRubrique, NomValeur, MobileRubrique, MobileValeur, PeriodeRubrique, PeriodeValeur;
-    private Button FinalBouton;
+    private TextView Titre;
 
     // Declaration des variables
 
-    private Intent ActiviteSuivante = null;
-    private String Nom_aidant, Numero_aidant;
+    private String Numero_aidant;
     private int Periode;
     // 120 secondes pour MAP - valeur par défaut
-
-    private String SvgParametres = null;
-    // tampon pour la sauvegarde / lecture des parametres
 
     private String msg_bat, msg_heure;
     private String coordonnees_bis= null; // msg latitude - longitude
@@ -69,12 +59,9 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
 
     private Toast msgT = null;
 
-    private int tempo1, tempo2;
     private String tmp = null;
 
     private Handler myHandler;
-
-    private String coucou;
 
     //Initializing the GoogleApiClient object
     private GoogleApiClient googleApiClient;
@@ -94,7 +81,7 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
             // Collecte des données
             Monitoring();
 
-            if (strAdresse != "")
+            if (! strAdresse.equals(""))
 
             {
                 // Envoi de SMS
@@ -123,7 +110,7 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
             }
 
             // MAP :
-            tempo1 = Periode * 1000 * 20; // en millisecondes - Periode en minutes - MAP 15 min-> 5 min
+            int tempo1 = Periode * 1000 * 20; // en millisecondes - Periode en minutes - MAP 15 min-> 5 min
             myHandler.postDelayed(this, tempo1);
         }
     };
@@ -138,15 +125,18 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
 
         // Cabler les rubriques
 
+        TextView NomValeur, MobileValeur, PeriodeValeur;
+
         Titre = findViewById(R.id.Titre);
-        Texte = findViewById(R.id.Texte);
-        NomRubrique = findViewById(R.id.NomRubrique);
+        //Texte = findViewById(R.id.Texte);
+        //NomRubrique = findViewById(R.id.NomRubrique);
         NomValeur = findViewById(R.id.NomValeur);
-        MobileRubrique = findViewById(R.id.MobileRubrique);
+        //MobileRubrique = findViewById(R.id.MobileRubrique);
         MobileValeur = findViewById(R.id.MobileValeur);
-        PeriodeRubrique = findViewById(R.id.PeriodeRubrique);
+        //PeriodeRubrique = findViewById(R.id.PeriodeRubrique);
         PeriodeValeur = findViewById(R.id.PeriodeValeur);
-        FinalBouton = findViewById(R.id.final_bouton);
+        // private Texte, NomRubrique, MobileRubrique,PeriodeRubrique;
+        Button finalBouton = findViewById(R.id.final_bouton);
 
 
         //Building a instance of Google Api Client
@@ -159,33 +149,34 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
 
         // relire le fichier
 
+        String nom_aidant;
         try {
             // ouverture du fichier
             FileInputStream input = openFileInput(NomFichier);
             int value;
 
             // lecture
-            StringBuffer lu = new StringBuffer();
+            StringBuilder lu = new StringBuilder();
 
             while ((value =input.read()) != -1) {
                 lu.append((char)value);
             }
 
-            if (input != null ) {
+ //           if (input != null ) {
 
                 //tmp = "buffer : " + lu.toString();
                 //msgT = Toast.makeText(this, tmp, Toast.LENGTH_LONG);
                 //msgT.show();
 
                 // Decomposition du buffer
-                SvgParametres = lu.toString();
+                String svgParametres = lu.toString();
 
-                int nbVirgules = SvgParametres.length() - SvgParametres.replace(",", "").length();
+                int nbVirgules = svgParametres.length() - svgParametres.replace(",", "").length();
 
                 if (nbVirgules == 2) {
 
-                    String[] separated = SvgParametres.split(",");
-                    Nom_aidant = separated[0];
+                    String[] separated = svgParametres.split(",");
+                    nom_aidant = separated[0];
                     Numero_aidant = separated[1];
                     Periode = Integer.parseInt(separated[2]);
                     //tmp = "retour lu fichier numero" + Numero_aidant;
@@ -198,11 +189,11 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
                     msgT.show();
 
                     // MAP si ni Bundle ni fichier, on arrive chez moi
-                    Nom_aidant=DEFAUT_NOM_AIDANT;
+                    nom_aidant =DEFAUT_NOM_AIDANT;
                     Numero_aidant = DEFAUT_NUMERO_AIDANT;
                     Periode = DEFAUT_PERIODE ;
                 }
-            }
+ //           }
 
             // fermeture du fichier
             input.close();
@@ -213,7 +204,7 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
             msgT.show();
 
             // MAP si ni Bundle ni fichier, on arrive chez moi
-            Nom_aidant=DEFAUT_NOM_AIDANT;
+            nom_aidant =DEFAUT_NOM_AIDANT;
             Numero_aidant = DEFAUT_NUMERO_AIDANT;
             Periode = DEFAUT_PERIODE ;
 
@@ -222,7 +213,7 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
         catch (IOException e) {
             msgT = Toast.makeText(this,"IOException", Toast.LENGTH_SHORT);
             msgT.show();
-            Nom_aidant=DEFAUT_NOM_AIDANT;
+            nom_aidant =DEFAUT_NOM_AIDANT;
             Numero_aidant = DEFAUT_NUMERO_AIDANT;
             Periode = DEFAUT_PERIODE ;
 
@@ -230,7 +221,7 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
 
         // Affecter les valeurs aux champs affichés
 
-        NomValeur.setText(Nom_aidant);
+        NomValeur.setText(nom_aidant);
         MobileValeur.setText(Numero_aidant);
         PeriodeValeur.setText(valueOf(Periode));
 
@@ -245,7 +236,7 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
         // On lance la surveillance du click
         // OnClick ci-après précise le traitement à réaliser
 
-        FinalBouton.setOnClickListener(this);
+        finalBouton.setOnClickListener(this);
 
     }
 
@@ -336,12 +327,12 @@ This callback is invoked when the GoogleApiClient is successfully connected
         }
         catch (IOException ioException) {
             tmp = "IO Exception Geocoder";
-            msgT = (Toast) Toast.makeText(getApplicationContext(), tmp, Toast.LENGTH_SHORT);
+            msgT = Toast.makeText(getApplicationContext(), tmp, Toast.LENGTH_SHORT);
             msgT.show();
         }
         catch (IllegalArgumentException illegalArgumentException) {
             tmp = "IO IllegalArgument Geocoder";
-            msgT = (Toast) Toast.makeText(getApplicationContext(), tmp, Toast.LENGTH_SHORT);
+            msgT = Toast.makeText(getApplicationContext(), tmp, Toast.LENGTH_SHORT);
             msgT.show();
         }
         catch (NullPointerException  nullPointerExction) {
@@ -367,7 +358,6 @@ This callback is invoked when the GoogleApiClient is successfully connected
             // SmsManager sms = SmsManager.getDefault();
             // sms.sendTextMessage("0684975391", null,  "je suis : " + strAdresse, null, null);
 
-
             for (int i = 0; i <= adresse.getMaxAddressLineIndex(); i++) {
                 addressFragments.add(adresse.getAddressLine(i));
             }
@@ -382,16 +372,17 @@ This callback is invoked when the GoogleApiClient is successfully connected
 
         // Validation de la fonction de lecture de la batterie
         BatteryManager bm = (BatteryManager) getSystemService(BATTERY_SERVICE);
+        assert bm != null;
         int batlevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
 
-        msg_bat = "Batterie : "+ String.valueOf(batlevel)+"%";
+        msg_bat = "Batterie : "+ batlevel +"%";
 
         // recuperation de l'heure courante
         Calendar cal = Calendar.getInstance();
         int hour = cal.get(Calendar.HOUR_OF_DAY);
         int minute = cal.get(Calendar.MINUTE);
 
-        msg_heure = String.valueOf(hour)+"h "+ String.valueOf(minute)+"mn";
+        msg_heure = hour +"h "+ minute +"mn";
 
         // recuperation de la position GPS
         getCurrentLocation();

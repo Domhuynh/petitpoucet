@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
 
-            if (input != null) {
+            //if (input != null) {
 
                 //tmp = "buffer : " + lu.toString();
                 // msgT = Toast.makeText(this, tmp, Toast.LENGTH_LONG);
@@ -151,7 +151,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Numero_aidant = DEFAUT_NUMERO_AIDANT;
                     Periode = DEFAUT_PERIODE;
                 }
-            }
+            // }
 
             // fermeture du fichier
             input.close();
