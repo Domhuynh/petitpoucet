@@ -119,13 +119,22 @@
         android:orientation="horizontal"
         >
         <Button
-            android:id="@+id/final_bouton"
+            android:id="@+id/g_bouton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
             android:layout_weight="1"
-            android:text="Arrêter et revenir a l accueil"
+            android:text="Arrêter le service"
+            />
+        <Button
+            android:id="@+id/d_bouton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_weight="1"
+            android:text="Maintenir le service"
             />
     </LinearLayout>
 </LinearLayout>

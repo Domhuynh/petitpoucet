@@ -49,7 +49,7 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
 
     // Declaration des variables
 
-    private String Numero_aidant;
+    private String Nom_aidant, Numero_aidant;
     private int Periode;
     // 120 secondes pour MAP - valeur par défaut
 
@@ -72,6 +72,7 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
         @Override
         public void run() {
             // Code à éxécuter de façon périodique
+            // Version à base de handler
 
             //MAP
             //tmp = "Runnable";
@@ -119,25 +120,14 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_monitoring_fused);
 
-        // MAJ et Afficher écran d'accueil
+        // Cabler les rubriques utilisées
 
-        // Cabler les rubriques
-
-        TextView NomValeur, MobileValeur, PeriodeValeur;
-
-        Titre = findViewById(R.id.Titre);
-        //Texte = findViewById(R.id.Texte);
-        //NomRubrique = findViewById(R.id.NomRubrique);
-        NomValeur = findViewById(R.id.NomValeur);
-        //MobileRubrique = findViewById(R.id.MobileRubrique);
-        MobileValeur = findViewById(R.id.MobileValeur);
-        //PeriodeRubrique = findViewById(R.id.PeriodeRubrique);
-        PeriodeValeur = findViewById(R.id.PeriodeValeur);
-        // private Texte, NomRubrique, MobileRubrique,PeriodeRubrique;
-        Button finalBouton = findViewById(R.id.final_bouton);
-
+        TextView NomValeur =  findViewById(R.id.NomValeur);
+        TextView MobileValeur = findViewById(R.id.MobileValeur);
+        TextView PeriodeValeur = findViewById(R.id.PeriodeValeur);
+        Button g_bouton = findViewById(R.id.g_bouton);
+        Button d_bouton = findViewById(R.id.d_bouton);
 
         //Building a instance of Google Api Client
         googleApiClient = new GoogleApiClient.Builder(this)
@@ -149,7 +139,6 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
 
         // relire le fichier
 
-        String nom_aidant;
         try {
             // ouverture du fichier
             FileInputStream input = openFileInput(NomFichier);
@@ -176,7 +165,7 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
                 if (nbVirgules == 2) {
 
                     String[] separated = svgParametres.split(",");
-                    nom_aidant = separated[0];
+                    Nom_aidant = separated[0];
                     Numero_aidant = separated[1];
                     Periode = Integer.parseInt(separated[2]);
                     //tmp = "retour lu fichier numero" + Numero_aidant;
@@ -189,7 +178,7 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
                     msgT.show();
 
                     // MAP si ni Bundle ni fichier, on arrive chez moi
-                    nom_aidant =DEFAUT_NOM_AIDANT;
+                    Nom_aidant =DEFAUT_NOM_AIDANT;
                     Numero_aidant = DEFAUT_NUMERO_AIDANT;
                     Periode = DEFAUT_PERIODE ;
                 }
@@ -204,7 +193,7 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
             msgT.show();
 
             // MAP si ni Bundle ni fichier, on arrive chez moi
-            nom_aidant =DEFAUT_NOM_AIDANT;
+            Nom_aidant =DEFAUT_NOM_AIDANT;
             Numero_aidant = DEFAUT_NUMERO_AIDANT;
             Periode = DEFAUT_PERIODE ;
 
@@ -213,7 +202,7 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
         catch (IOException e) {
             msgT = Toast.makeText(this,"IOException", Toast.LENGTH_SHORT);
             msgT.show();
-            nom_aidant =DEFAUT_NOM_AIDANT;
+            Nom_aidant =DEFAUT_NOM_AIDANT;
             Numero_aidant = DEFAUT_NUMERO_AIDANT;
             Periode = DEFAUT_PERIODE ;
 
@@ -221,7 +210,7 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
 
         // Affecter les valeurs aux champs affichés
 
-        NomValeur.setText(nom_aidant);
+        NomValeur.setText(Nom_aidant);
         MobileValeur.setText(Numero_aidant);
         PeriodeValeur.setText(valueOf(Periode));
 
@@ -236,7 +225,10 @@ public class MonitoringFusedActivity extends AppCompatActivity implements Google
         // On lance la surveillance du click
         // OnClick ci-après précise le traitement à réaliser
 
-        finalBouton.setOnClickListener(this);
+        g_bouton.setTag(0);
+        d_bouton.setTag(1);
+        g_bouton.setOnClickListener(this);
+        d_bouton.setOnClickListener(this);
 
     }
 

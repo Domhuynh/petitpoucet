@@ -50,8 +50,8 @@ public class ModifieParametres extends AppCompatActivity implements View.OnClick
 
         // Cabler les rubriques utilisées
 
-        NomValeur =  findViewById(R.id.NomValeur);
-        MobileValeur = findViewById(R.id.MobileValeur);
+        TextView NomValeur =  findViewById(R.id.NomValeur);
+        TextView MobileValeur = findViewById(R.id.MobileValeur);
         TextView PeriodeValeur = findViewById(R.id.PeriodeValeur);
         Button g_bouton = findViewById(R.id.g_bouton);
         Button d_bouton = findViewById(R.id.d_bouton);
@@ -62,7 +62,9 @@ public class ModifieParametres extends AppCompatActivity implements View.OnClick
 
         // relire le fichier
 
-        try {
+        litFichier();
+
+   /*     try {
             // ouverture du fichier
             FileInputStream input = openFileInput(NomFichier);
             int value;
@@ -116,7 +118,7 @@ public class ModifieParametres extends AppCompatActivity implements View.OnClick
             e.printStackTrace();
         }
 
-
+*/
         // Affecter les valeurs aux champs affichés
 
         NomValeur.setText(Nom_aidant);
@@ -277,6 +279,67 @@ public class ModifieParametres extends AppCompatActivity implements View.OnClick
             return false;
         }
         return true;
+    }
+
+    public void litFichier() {
+
+        // relire le fichier
+
+        try {
+            // ouverture du fichier
+            FileInputStream input = openFileInput(NomFichier);
+            int value;
+
+            // lecture
+            StringBuilder lu = new StringBuilder();
+
+            while ((value =input.read()) != -1) {
+                lu.append((char)value);
+            }
+
+
+            // Decomposition du buffer
+            SvgParametres = lu.toString();
+
+            int nbVirgules = SvgParametres.length() - SvgParametres.replace(",", "").length();
+
+            if (nbVirgules == 2) {
+
+                String[] separated = SvgParametres.split(",");
+                Nom_aidant = separated[0];
+                Numero_aidant = separated[1];
+                Periode = Integer.parseInt(separated[2]);
+
+            } else {
+                // le fichier existe mais pb sur le fichier
+                Toast.makeText(this, "Pb sur le buffer", Toast.LENGTH_LONG).show();
+
+                Nom_aidant=DEFAUT_NOM_AIDANT;
+                Numero_aidant = DEFAUT_NUMERO_AIDANT;
+                Periode = DEFAUT_PERIODE ;
+            }
+            //}
+
+            // fermeture du fichier
+            input.close();
+        }
+
+
+        catch (FileNotFoundException e) {
+            Toast.makeText(this, "File Not Found", Toast.LENGTH_SHORT).show();
+
+            // MAP si ni Bundle ni fichier, on arrive chez moi
+            Nom_aidant=DEFAUT_NOM_AIDANT;
+            Numero_aidant = DEFAUT_NUMERO_AIDANT;
+            Periode = DEFAUT_PERIODE ;
+
+            e.printStackTrace();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
 }

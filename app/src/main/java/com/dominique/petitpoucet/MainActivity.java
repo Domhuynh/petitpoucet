@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static final int DEFAUT_PERIODE = 60;   // pas top les formats différents bundle et defaut...
 
     public static final String NomFichier = "data1.txt";
+    public static final String FichierMsg = "msg.txt";
 
     public String SvgParametres = null;
     // tampon pour la sauvegarde / lecture des parametres
@@ -151,6 +152,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case 1:
+
+                // Placer le service scheduler et lancer le service
 
                 ActiviteSuivante = new Intent(MainActivity.this, MonitoringFusedActivity.class);
                 startActivity(ActiviteSuivante);
