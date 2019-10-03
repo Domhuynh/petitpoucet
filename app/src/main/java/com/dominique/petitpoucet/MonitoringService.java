@@ -1,9 +1,12 @@
 package com.dominique.petitpoucet;
 
 import android.Manifest;
+import android.app.Activity;
+import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.Service;
 import android.app.job.JobInfo;
 import android.app.job.JobParameters;
 import android.app.job.JobScheduler;
@@ -20,7 +23,9 @@ import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -43,96 +48,97 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
+import static com.dominique.petitpoucet.MainActivity.DEFAUT_NOM_AIDANT;
+import static com.dominique.petitpoucet.MainActivity.DEFAUT_NUMERO_AIDANT;
+import static com.dominique.petitpoucet.MainActivity.DEFAUT_PERIODE;
 import static com.dominique.petitpoucet.MainActivity.FichierMsg;
 import static com.dominique.petitpoucet.MainActivity.NomFichier;
 import static com.dominique.petitpoucet.MonitoringFusedActivity.LOCATION_REQUEST;
 
 
-public class MonitoringService extends JobService implements GoogleApiClient.ConnectionCallbacks,
+public class MonitoringService extends IntentService implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
+    private int result = Activity.RESULT_CANCELED;
+    public static final String MESSAGE = "message";
+    public static final String RESULT = "result";
+    public static final String NOTIFICATION = "com.dominique.petitpoucet";
+
+
     public static final int ID_NOTIFICATION = 1964;
+
     //Initializing the GoogleApiClient object
     private GoogleApiClient googleApiClient;
-
-    String msg_heure, msg_bat;
+    String msg_heure, msg_bat, message_statut;
     private String coordonnees_bis= null; // msg latitude - longitude
     private String strAdresse;
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        //initialize your service here
+    private String Nom_aidant, Numero_aidant;
+    private int Periode;
+    private Handler myHandler;
+
+    public MonitoringService(){
+        super("MonitoringService");
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        //destroy your service here
-    }
+    protected void onHandleIntent(Intent intent){
 
-    // The binder that glue to my service
-
-    private final Binder binder=new LocalBinder();
-
-    public class LocalBinder extends Binder {
-        MonitoringService getService() {
-            return (MonitoringService.this);
-        }
-    }
-
-  /* A priori pas possible / necessaire dans un Jobservice, ie au Jobscheduler
-
-    @Override
-    public IBinder onBind (Intent intent) {
-
-        return binder;
-    }*/
-
-    // The key of the Intent to communicate with the service's users
-
-    public static final String MY_SERVICE_INTENT = "stinfoservices.net.android.MyUniqueItentServiceKey";
-
-    private Intent broadcast = new Intent(MY_SERVICE_INTENT);
-
-    // This class aims to make a task in a separeted thread
-
-    class MyTaskInAnOtherThread extends AsyncTask<Location, Void, Void> {
-        @Override
-        protected Void doInBackground(Location... locs) {
-            // Do something to update your data ; here is the place where your treatment is done in another thread than in the GUI thread
-            // Prevent your listener that something happens
-            sendBroadcast(broadcast);
-            return (null);
-        }
-    }
-
-
-
-    @Override
-    public boolean onStartJob(JobParameters jobParameters) {
-        Log.i("JobServiceSample", "MainJobService start" );
-        return true;
-    }
-
-    @Override
-    public boolean onStopJob(JobParameters jobParameters) {
-        Log.i("JobServiceSample", "MainJobService stop" );
-        return true;
-    }
-
-    // Scheduler
-
-    public static void scheduleJob(Context context) {
-        ComponentName serviceComponent = new ComponentName(context, MonitoringService.class);
-        JobInfo jobInbo = new JobInfo.Builder(0, serviceComponent)
-                .setPeriodic( 30000, JobInfo.getMinFlexMillis() )
+        //Building a instance of Google Api Client
+        googleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addOnConnectionFailedListener(this)
+                .addConnectionCallbacks(this)
                 .build();
 
-        JobScheduler jobScheduler = context.getSystemService(JobScheduler.class);
-        jobScheduler.schedule(jobInbo);
+        litFichierLog();
+
+        myHandler = new Handler();
+        myHandler.postDelayed(myRunnable,500); // on lance myRunnable après 500ms
+
     }
 
+    private Runnable myRunnable = new Runnable() {
+        @Override
+        public void run() {
+            // Code à éxécuter de façon périodique
+            // Version à base de handler
+
+            // Collecte des données
+            Monitoring();
+
+            // Elaboration du message
+            if (! strAdresse.equals(""))
+            {
+                message_statut = msg_heure + "\n" + "\n" + msg_bat + "\n" + coordonnees_bis + "\n" + "Adresse approximative :\n" + strAdresse;
+            }
+            else
+            {
+                message_statut = msg_heure + "\n" + "\n" + msg_bat + "\n" + coordonnees_bis + "\n" + "Pas d'adresse disponible :\n";
+            }
+
+            SmsManager sms = SmsManager.getDefault();
+            sms.sendTextMessage(Numero_aidant, null, message_statut, null, null);
+
+            // envoi vers activité pour affichage
+            result = Activity.RESULT_OK;
+            publieResult(message_statut,result);
+
+
+            // on reboucle sur le handler
+            int tempo1 = Periode * 1000 * 20; // en millisecondes - Periode en minutes - MAP 15 min-> 5 min
+            myHandler.postDelayed(this, tempo1);
+
+        }
+    };
+
+
+    protected void publieResult(String message, int result) {
+        Intent intent = new Intent(NOTIFICATION);
+        intent.putExtra(MESSAGE, message);
+        intent.putExtra(RESULT, result);
+        sendBroadcast(intent);
+    }
 
     // Notification
 
@@ -309,6 +315,81 @@ This callback is invoked when the GoogleApiClient is successfully connected
 
         // recuperation de la position GPS
         getCurrentLocation();
+
+    }
+
+    private void litFichierLog(){
+
+        // relire le fichier
+
+        try {
+            // ouverture du fichier
+            FileInputStream input = openFileInput(NomFichier);
+            int value;
+
+            // lecture
+            StringBuilder lu = new StringBuilder();
+
+            while ((value =input.read()) != -1) {
+                lu.append((char)value);
+            }
+
+            //           if (input != null ) {
+
+            //tmp = "buffer : " + lu.toString();
+            //msgT = Toast.makeText(this, tmp, Toast.LENGTH_LONG);
+            //msgT.show();
+
+            // Decomposition du buffer
+            String svgParametres = lu.toString();
+
+            int nbVirgules = svgParametres.length() - svgParametres.replace(",", "").length();
+
+            if (nbVirgules == 2) {
+
+                String[] separated = svgParametres.split(",");
+                Nom_aidant = separated[0];
+                Numero_aidant = separated[1];
+                Periode = Integer.parseInt(separated[2]);
+                //tmp = "retour lu fichier numero" + Numero_aidant;
+                //msgT = Toast.makeText(this,tmp, Toast.LENGTH_SHORT);
+                //msgT.show();
+            } else {
+                // le fichier existe mais pb sur le fichier
+                Log.d("litFichierLog","pb sur le buffer");
+
+                // MAP si ni Bundle ni fichier, on arrive chez moi
+                Nom_aidant =DEFAUT_NOM_AIDANT;
+                Numero_aidant = DEFAUT_NUMERO_AIDANT;
+                Periode = DEFAUT_PERIODE ;
+            }
+            //           }
+
+            // fermeture du fichier
+            input.close();
+        }
+
+        catch (FileNotFoundException e) {
+            Log.d("litFichierLog","FileNotFoundException");
+
+            // MAP si ni Bundle ni fichier, on arrive chez moi
+            Nom_aidant =DEFAUT_NOM_AIDANT;
+            Numero_aidant = DEFAUT_NUMERO_AIDANT;
+            Periode = DEFAUT_PERIODE ;
+
+            e.printStackTrace();
+        }
+        catch (IOException e) {
+            Log.d("litFichierLog","IOException");
+
+            Nom_aidant =DEFAUT_NOM_AIDANT;
+            Numero_aidant = DEFAUT_NUMERO_AIDANT;
+            Periode = DEFAUT_PERIODE ;
+
+        }
+
+
+
 
     }
 

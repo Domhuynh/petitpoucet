@@ -31,11 +31,11 @@ import static java.lang.String.valueOf;
 
 public class ModifieParametres extends AppCompatActivity implements View.OnClickListener {
 
-    private String Nom_aidant, Numero_aidant;
-    private int Periode;
+    private static String Nom_aidant, Numero_aidant;
+    private static int Periode;
 
     // tampon pour la sauvegarde / lecture des parametres
-    private String SvgParametres = null;
+    private static String SvgParametres = null;
 
     // Declaration des elements affiches utilises
     private EditText MobileValeur, NomValeur ;
@@ -281,7 +281,7 @@ public class ModifieParametres extends AppCompatActivity implements View.OnClick
         return true;
     }
 
-    public void litFichier() {
+    private void litFichier() {
 
         // relire le fichier
 

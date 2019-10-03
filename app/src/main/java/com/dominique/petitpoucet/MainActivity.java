@@ -153,10 +153,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             case 1:
 
-                // Placer le service scheduler et lancer le service
+                //ActiviteSuivante = new Intent(MainActivity.this, MonitoringFusedActivity.class);
+                //startActivity(ActiviteSuivante);
 
-                ActiviteSuivante = new Intent(MainActivity.this, MonitoringFusedActivity.class);
-                startActivity(ActiviteSuivante);
+                // Alternative demarrage du service
+                Intent intent = new Intent(MainActivity.this,MonitoringService.class);
+                startService(intent);
 
                 break;
 
@@ -178,11 +180,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    public void confirm() {
+    private void confirm() {
 
         // set title
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
-        alertDialogBuilder.setTitle("Touche retour actionnée");
+        alertDialogBuilder.setTitle("...");
 
 
         // set dialog message
